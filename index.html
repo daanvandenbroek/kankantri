@@ -47,15 +47,18 @@
   background-color: #e8f5e9;
 }
   #controls {
-    position: absolute;
-    top: 0; left: 0;
-    width: 240px; height: 100%;
-    background: var(--background-control);
-    box-shadow: var(--shadow);
-    padding: 24px 16px;
-    overflow-y: auto;
-    border-right: 1px solid #e1e4e8;
-  }
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 250px;
+      height: 100%;
+      background: #fafafa;
+      border-right: 1px solid #ddd;
+      padding: 16px;
+      box-sizing: border-box;
+      overflow-y: auto;
+      z-index: 10;
+    }
   #controls h2 {
     font-size: 18px;
     font-weight: 600;
@@ -156,22 +159,35 @@
 
 </head>
 <body>
+
 <div id="controls">
   <h2>Instellingen</h2>
-
   <button id="toggle_hover" data-shown="false" style="margin-bottom:8px;">Toon alle titels</button><br/>
-  <button id="toggle_all_labels" data-hidden="false" style="margin-bottom:8px;">Verberg alle inhoudelijke labels</button><br/>
-  <strong>Filter inhoudelijke labels:</strong><br/><fieldset>
-  <input type="checkbox" id="filter_8" checked> <label for="filter_8">Surinaamse diaspora</label><br/>
-  <input type="checkbox" id="filter_31" checked> <label for="filter_31">Milieuactivisme</label><br/>
-  <input type="checkbox" id="filter_23" checked> <label for="filter_23">Nationalisme</label><br/>
-  <input type="checkbox" id="filter_36" checked> <label for="filter_36">Slavernij</label><br/>
-  <input type="checkbox" id="filter_46" checked> <label for="filter_46">Christendom</label><br/>
-  <input type="checkbox" id="filter_10" checked> <label for="filter_10">Surinaams perspectief</label><br/>
-  <input type="checkbox" id="filter_18" checked> <label for="filter_18">Nederlands perspectief</label><br/>
-  <input type="checkbox" id="filter_39" checked> <label for="filter_39">Postkoloniaal Nederland</label><br/>
-  <input type="checkbox" id="filter_5" checked> <label for="filter_5">Winti</label><br/>
-</fieldset></div>
+  <button id="toggle_all_labels" data-hidden="false" style="margin-bottom:8px;">Verberg alle inhoudelijke labels</button><br/><br/>
+  <strong>Filter inhoudelijke labels:</strong>
+  <fieldset>
+    <legend>Perspectief</legend>
+    <label><input type="checkbox" id="filter_10" data-filter-label="label:Surinaams perspectief" checked> Surinaams perspectief</label><br/>
+    <label><input type="checkbox" id="filter_18" data-filter-label="label:Nederlands perspectief" checked> Nederlands perspectief</label><br/>
+    <label><input type="checkbox" id="filter_8" data-filter-label="label:Surinaamse diaspora" checked> Surinaamse diaspora</label>
+  </fieldset>
+  <fieldset>
+    <legend>Politieke lading</legend>
+    <label><input type="checkbox" id="filter_23" data-filter-label="label:Nationalisme" checked> Nationalisme</label><br/>
+    <label><input type="checkbox" id="filter_31" data-filter-label="label:Milieuactivisme" checked> Milieuactivisme</label>
+  </fieldset>
+  <fieldset>
+    <legend>Onderwerp genoemd</legend>
+    <label><input type="checkbox" id="filter_46" data-filter-label="label:Christendom" checked> Christendom</label><br/>
+    <label><input type="checkbox" id="filter_5" data-filter-label="label:Winti" checked> Winti</label><br/>
+    <label><input type="checkbox" id="filter_36" data-filter-label="label:Slavernij" checked> Slavernij</label>
+  </fieldset>
+  <fieldset>
+    <legend>Verschijningscontext</legend>
+    <label><input type="checkbox" id="filter_39" data-filter-label="label:Postkoloniaal Nederland" checked> Postkoloniaal Nederland</label>
+  </fieldset>
+</div>
+
 
 <div id="cy"></div>
 <div id="tooltip"></div>
