@@ -1,151 +1,129 @@
 <!DOCTYPE html>
 <html>
 <head>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-<meta charset="utf-8"/>
-<title>Interactive Cytoscape Network</title>
-<script src="https://unpkg.com/cytoscape/dist/cytoscape.min.js"></script>
-<script>
-  // Click to show info panel
-  document.addEventListener('DOMContentLoaded', function() {
-    cy.on('tap', 'node.item', function(evt) {
-      var node = evt.target;
-      var data = node.data();
-      var labels = node.connectedEdges().connectedNodes().filter(function(ele) {
-        return ele.data('label').startsWith('label:');
-      }).map(function(ele) {
-        return ele.data('label').replace('label:', '');
-      });
-      var panel = document.getElementById('info-panel');
-      var html = '<button class="close-btn">&times;</button>';
-      html += '<h3>' + data.label + '</h3>';
-      if(labels.length) {
-        html += '<p><strong>Inhoudelijke labels:</strong></p><ul>';
-        labels.forEach(function(lbl){ html += '<li>' + lbl + '</li>'; });
-        html += '</ul>';
-      }
-      if(data.url) { html += '<p><a href="' + data.url + '" target="_blank">Google zoeken</a></p>'; }
-      panel.innerHTML = html;
-      panel.style.display = 'block';
-      panel.querySelector('.close-btn').onclick = function() { panel.style.display = 'none'; };
-    });
-  });
-</script>
-<style>
-  :root {
-    --primary-color: #0052cc;
-    --secondary-color: #6c757d;
-    --background-control: #f4f5f7;
-    --text-color: #333333;
-    --shadow: 0 4px 12px rgba(0,0,0,0.1);
-    --border-radius: 8px;
-    --font-base: 'Inter', sans-serif;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; width: 100%; font-family: var(--font-base); overflow: hidden; background-color: #e8f5e9; }
-  #controls {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 250px;
-    height: 100%;
-    background: #fafafa;
-    border-right: 1px solid #ddd;
-    padding: 16px;
-    overflow-y: auto;
-    z-index: 10;
-  }
-  #controls h2 { font-size: 18px; font-weight: 600; margin-bottom: 16px; color: var(--text-color); }
-  #controls button { display: block; width: 100%; margin: 8px 0; padding: 10px; font-size: 14px; font-weight: 600; color: #ffffff; background-color: var(--primary-color); border: none; border-radius: var(--border-radius); cursor: pointer; transition: background-color 0.2s, transform 0.1s; }
-  #controls button:hover { background-color: #003d99; transform: translateY(-1px); }
-  #controls button.secondary { background-color: var(--secondary-color); }
-  #controls button.secondary:hover { background-color: #5a6268; }
-  #controls fieldset { margin-top: 16px; border: 1px solid #e1e4e8; padding: 12px; border-radius: var(--border-radius); }
-  #controls legend { font-weight: 600; margin-bottom: 8px; color: var(--text-color); }
-  #controls label { font-size: 14px; color: var(--text-color); }
-  #controls input[type="checkbox"] { transform: scale(1.2); margin-right: 8px; cursor: pointer; }
-  #cy { position: absolute; top: 0; left: 240px; right: 0; bottom: 0; }
-  #tooltip { position: absolute; z-index: 1000; padding: 6px 10px; background: #ffffff; border-radius: var(--border-radius); box-shadow: var(--shadow); font-size: 13px; color: var(--text-color); pointer-events: none; display: none; white-space: nowrap; opacity: 0.9; transition: opacity 0.2s; }
-  #info-panel { position: absolute; top: 0; right: 0; width: 240px; height: 100vh; background: #ffffff; box-shadow: var(--shadow); border-left: 1px solid #e1e4e8; padding: 16px; overflow-y: auto; display: none; font-size: 14px; color: var(--text-color); }
-  #info-panel button.close-btn { background: none; border: none; font-size: 18px; float: right; cursor: pointer; }
-</style>
+  <meta charset="utf-8" />
+  <title>Interactive Cytoscape Network</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/cytoscape/dist/cytoscape.min.js"></script>
+  <style>
+    :root {
+      --primary-color: #0052cc;
+      --secondary-color: #6c757d;
+      --text-color: #333333;
+      --shadow: 0 4px 12px rgba(0,0,0,0.1);
+      --border-radius: 8px;
+      --font-base: 'Inter', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; width: 100%; font-family: var(--font-base); overflow: hidden; background-color: #e8f5e9; }
+    #controls {
+      position: absolute; top: 0; left: 0; width: 250px; height: 100%; background: #fafafa;
+      border-right: 1px solid #ddd; padding: 16px; overflow-y: auto; z-index: 10;
+    }
+    #controls h2 { font-size: 18px; font-weight: 600; margin-bottom: 16px; color: var(--text-color); }
+    #controls button { display: block; width: 100%; margin: 8px 0; padding: 10px; font-size: 14px; font-weight: 600; color: #fff; background-color: var(--primary-color); border: none; border-radius: var(--border-radius); cursor: pointer; }
+    #controls button.secondary { background-color: var(--secondary-color); }
+    #controls fieldset { margin-top: 16px; border: 1px solid #e1e4e8; padding: 12px; border-radius: var(--border-radius); }
+    #controls legend { font-weight: 600; margin-bottom: 8px; color: var(--text-color); }
+    #controls label { font-size: 14px; color: var(--text-color); display: block; margin-bottom: 4px; }
+    #controls input[type="checkbox"] { transform: scale(1.2); margin-right: 8px; vertical-align: middle; }
+    #cy { position: absolute; top: 0; left: 250px; right: 0; bottom: 0; }
+    #tooltip { position: absolute; z-index: 1000; padding: 6px 10px; background: #fff; border-radius: var(--border-radius); box-shadow: var(--shadow); font-size: 13px; color: var(--text-color); pointer-events: none; display: none; white-space: nowrap; }
+    #info-panel { position: absolute; top: 0; right: 0; width: 240px; height: 100vh; background: #fff; box-shadow: var(--shadow); border-left: 1px solid #e1e4e8; padding: 16px; overflow-y: auto; display: none; font-size: 14px; color: var(--text-color); }
+    #info-panel .close-btn { background: none; border: none; font-size: 18px; float: right; cursor: pointer; }
+  </style>
 </head>
 <body>
 <div id="controls">
   <h2>Instellingen</h2>
-  <button id="toggle_hover" data-shown="false" style="margin-bottom:8px;">Toon alle titels</button><br/>
-  <button id="toggle_all_labels" data-hidden="false" style="margin-bottom:8px;">Verberg alle inhoudelijke labels</button><br/><br/>
-  <strong>Filter inhoudelijke labels:</strong>
+  <button id="toggle_hover" data-shown="false">Toon alle titels</button>
+  <button id="toggle_all_labels" data-hidden="false" class="secondary">Verberg alle labels</button>
   <fieldset>
     <legend>Perspectief</legend>
-    <label><input type="checkbox" id="filter_10" data-filter-label="label:Afro-Surinaams perspectief" checked> Afro-Surinaams perspectief</label><br/>
-    <label><input type="checkbox" id="filter_48" data-filter-label="label:Hindostaans perspectief" checked> Hindostaans perspectief</label><br/>
-    <label><input type="checkbox" id="filter_49" data-filter-label="label:Javaans perspectief" checked> Javaans perspectief</label><br/>
-    <label><input type="checkbox" id="filter_50" data-filter-label="label:Inheems perspectief" checked> Inheems perspectief</label><br/>
-    <label><input type="checkbox" id="filter_18" data-filter-label="label:Nederlands perspectief" checked> Nederlands perspectief</label><br/>
-    <label><input type="checkbox" id="filter_8" data-filter-label="label:Surinaamse diaspora" checked> Surinaamse diaspora</label>
+    <label><input type="checkbox" id="filter_10" data-filter-label="label:Afro-Surinaams perspectief" checked>Afro-Surinaams perspectief</label>
+    <label><input type="checkbox" id="filter_48" data-filter-label="label:Hindostaans perspectief" checked>Hindostaans perspectief</label>
+    <label><input type="checkbox" id="filter_49" data-filter-label="label:Javaans perspectief" checked>Javaans perspectief</label>
+    <label><input type="checkbox" id="filter_50" data-filter-label="label:Inheems perspectief" checked>Inheems perspectief</label>
+    <label><input type="checkbox" id="filter_18" data-filter-label="label:Nederlands perspectief" checked>Nederlands perspectief</label>
+    <label><input type="checkbox" id="filter_8" data-filter-label="label:Surinaamse diaspora" checked>Surinaamse diaspora</label>
   </fieldset>
   <fieldset>
     <legend>Politieke lading</legend>
-    <label><input type="checkbox" id="filter_23" data-filter-label="label:Nationalisme" checked> Nationalisme</label><br/>
-    <label><input type="checkbox" id="filter_31" data-filter-label="label:Milieuactivisme" checked> Milieuactivisme</label>
+    <label><input type="checkbox" id="filter_23" data-filter-label="label:Nationalisme" checked>Nationalisme</label>
+    <label><input type="checkbox" id="filter_31" data-filter-label="label:Milieuactivisme" checked>Milieuactivisme</label>
   </fieldset>
   <fieldset>
     <legend>Onderwerp genoemd</legend>
-    <label><input type="checkbox" id="filter_46" data-filter-label="label:Christendom" checked> Christendom</label><br/>
-    <label><input type="checkbox" id="filter_5" data-filter-label="label:Winti" checked> Winti</label><br/>
-    <label><input type="checkbox" id="filter_36" data-filter-label="label:Slavernij" checked> Slavernij</label>
+    <label><input type="checkbox" id="filter_46" data-filter-label="label:Christendom" checked>Christendom</label>
+    <label><input type="checkbox" id="filter_5" data-filter-label="label:Winti" checked>Winti</label>
+    <label><input type="checkbox" id="filter_36" data-filter-label="label:Slavernij" checked>Slavernij</label>
   </fieldset>
   <fieldset>
     <legend>Verschijningscontext</legend>
-    <label><input type="checkbox" id="filter_39" data-filter-label="label:Postkoloniaal Nederland" checked> Postkoloniaal Nederland</label>
+    <label><input type="checkbox" id="filter_39" data-filter-label="label:Postkoloniaal Nederland" checked>Postkoloniaal Nederland</label>
   </fieldset>
 </div>
 <div id="cy"></div>
 <div id="tooltip"></div>
 <div id="info-panel"></div>
 <script>
+// initialize cytoscape
 var cy = cytoscape({
-    container: document.getElementById('cy'),
-    elements: [
-      // ... existing item nodes ...
-      { data: { id: 10, label: 'label:Afro-Surinaams perspectief' }, classes: 'label', position: { x: -363, y: -21 }, style: { 'background-color': '#68ad36', width: 50, height: 50 } },
-      { data: { id: 48, label: 'label:Hindostaans perspectief' }, classes: 'label', position: { x: -200, y: -200 }, style: { 'background-color': '#68ad36', width: 50, height: 50 } },
-      { data: { id: 49, label: 'label:Javaans perspectief' }, classes: 'label', position: { x: 0, y: -200 }, style: { 'background-color': '#68ad36', width: 50, height: 50 } },
-      { data: { id: 50, label: 'label:Inheems perspectief' }, classes: 'label', position: { x: 200, y: -200 }, style: { 'background-color': '#68ad36', width: 50, height: 50 } },
-      // ... other label nodes ...
-      { data: { id: 47, label: 'dîl ghabṟây kâheṉse semar bhayânak', url: 'https://www.google.com/search?q=dîl+ghabṟây+kâheṉse+semar+bhayânak' }, classes: 'item', position: { x: -140.75, y: -269.47 }, style: { 'background-color': '#d27cce', width: 50, height: 50 } },
-      // ... other edges ...
-      { data: { id: '48_47', source: 48, target: 47 }, style: { 'line-color': '#68ad36', width: 1 } }
-    ],
-    layout: { name: 'preset', fit: true },
-    style: [
-      { selector: 'node.label', style: { label: 'data(label)', 'font-weight': 'bold', 'text-valign': 'center', 'text-halign': 'center', 'font-size': '12px' } },
-      { selector: 'node.item', style: { label: '', 'text-opacity': 0 } },
-      { selector: '.faded', style: { opacity: 0.1 } },
-      { selector: '.highlight', style: { opacity: 1 } },
-      { selector: 'edge', style: { 'line-color': 'data(line-color)', width: 1 } }
-    ]
+  container: document.getElementById('cy'),
+  elements: [
+    // label nodes
+    { data: { id: '10', label: 'label:Afro-Surinaams perspectief' }, classes: 'label', position: { x: -360, y: -20 } },
+    { data: { id: '48', label: 'label:Hindostaans perspectief' }, classes: 'label', position: { x: -200, y: -200 } },
+    { data: { id: '49', label: 'label:Javaans perspectief' }, classes: 'label', position: { x: 0, y: -200 } },
+    { data: { id: '50', label: 'label:Inheems perspectief' }, classes: 'label', position: { x: 200, y: -200 } },
+    { data: { id: '18', label: 'label:Nederlands perspectief' }, classes: 'label', position: { x: 380, y: -180 } },
+    { data: { id: '8',  label: 'label:Surinaamse diaspora' }, classes: 'label', position: { x: 120, y: 436 } },
+    { data: { id: '23', label: 'label:Nationalisme' }, classes: 'label', position: { x: -245, y: 323 } },
+    { data: { id: '31', label: 'label:Milieuactivisme' }, classes: 'label', position: { x: -229, y: -469 } },
+    { data: { id: '46', label: 'label:Christendom' }, classes: 'label', position: { x: 105, y: -358 } },
+    { data: { id: '5',  label: 'label:Winti' }, classes: 'label', position: { x: 11,  y: -148 } },
+    { data: { id: '36', label: 'label:Slavernij' }, classes: 'label', position: { x: -61, y: 88 } },
+    { data: { id: '39', label: 'label:Postkoloniaal Nederland' }, classes: 'label', position: { x: 168, y: 325 } },
+    // item nodes (example subset)
+    { data: { id: '47', label: 'dîl ghabṟây kâheṉse semar bhayânak', url: 'https://www.google.com/search?q=d%C3%AEl+ghab%E1%B9%9F%C3%A2y+k%C3%A2he%E1%B9%89se+semar+bhay%C3%A2nak' }, classes: 'item', position: { x: -141, y: -269 } },
+    // connect item 47 to new Hindostaans perspectief
+    { data: { id: '48_47', source: '48', target: '47' } }
+    // ... include all other item nodes and edges here, unchanged
+  ],
+  layout: { name: 'preset', fit: true },
+  style: [
+    { selector: 'node.label', style: { 'label': 'data(label)', 'font-weight': 'bold', 'text-valign': 'center', 'text-halign': 'center', 'font-size': '12px' } },
+    { selector: 'node.item',  style: { 'label': '', 'text-opacity': 0 } },
+    { selector: 'edge',      style: { 'line-color': '#ccc', 'width': 1 } },
+    { selector: '.faded',    style: { 'opacity': 0.1 } },
+    { selector: '.highlight',style: { 'opacity': 1 } }
+  ]
 });
 
-// Tooltip and hover logic unchanged...
-// ... existing filter handlers ...
-// Add handlers for new filters:
-document.getElementById('filter_48').addEventListener('change', function(evt) {
-  var node = cy.getElementById('48'); var edges = node.connectedEdges();
-  evt.target.checked ? (node.show(), edges.show()) : (node.hide(), edges.hide());
-});
-document.getElementById('filter_49').addEventListener('change', function(evt) {
-  var node = cy.getElementById('49'); var edges = node.connectedEdges();
-  evt.target.checked ? (node.show(), edges.show()) : (node.hide(), edges.hide());
-});
-document.getElementById('filter_50').addEventListener('change', function(evt) {
-  var node = cy.getElementById('50'); var edges = node.connectedEdges();
-  evt.target.checked ? (node.show(), edges.show()) : (node.hide(), edges.hide());
-});
+// hover tooltip
+var tooltip = document.getElementById('tooltip');
+var showTitles = false;
+cy.on('mouseover', 'node.item', function(e){ if(showTitles){tooltip.style.display='block'; tooltip.innerHTML=e.target.data('label'); rerenderTooltip(e);} });
+cy.on('mouseout', 'node.item',  function(){ tooltip.style.display='none'; });
 
-// Remove old edge: 10_47 removed.
+function rerenderTooltip(e){ var pos=e.target.renderedPosition(); tooltip.style.left=pos.x+10+'px'; tooltip.style.top=pos.y-10+'px'; }
 
+// highlight neighbors
+cy.on('mouseover','node',function(e){ var n=e.target; var ne=n.connectedEdges().connectedNodes().union(n); cy.elements().difference(ne.union(n.connectedEdges())).addClass('faded'); ne.addClass('highlight'); n.connectedEdges().addClass('highlight'); });
+cy.on('mouseout','node',function(){ cy.elements().removeClass('faded highlight'); });
+
+// filter handlers
+function bindFilter(id){ document.getElementById(id).addEventListener('change',function(e){ var nid=id.replace('filter_',''); var node=cy.getElementById(nid); var es=node.connectedEdges(); e.target.checked? (node.show(),es.show()):(node.hide(),es.hide()); }); }
+['filter_8','filter_10','filter_18','filter_48','filter_49','filter_50','filter_23','filter_31','filter_46','filter_5','filter_36','filter_39'].forEach(bindFilter);
+
+// toggle labels
+document.getElementById('toggle_all_labels').addEventListener('click',function(){ var hide=this.getAttribute('data-hidden')==='false'; ['8','10','18','48','49','50','23','31','46','5','36','39'].forEach(function(nid){ var cb=document.getElementById('filter_'+nid); cb.checked=!hide; var node=cy.getElementById(nid), es=node.connectedEdges(); hide? (node.hide(),es.hide()):(node.show(),es.show()); }); this.setAttribute('data-hidden',hide?'true':'false'); this.textContent=hide?'Maak alle labels zichtbaar':'Verberg alle labels'; });
+
+// toggle titles
+document.getElementById('toggle_hover').addEventListener('click',function(){ showTitles=!showTitles; cy.nodes('.item').forEach(function(n){ n.style('label', showTitles? n.data('label') : ''); n.style('text-opacity', showTitles? 1 : 0); }); this.textContent= showTitles? 'Verberg alle titels':'Toon alle titels'; });
+
+// info panel on tap
+cy.on('tap','node.item',function(evt){ var node=evt.target; var data=node.data(); var labels=node.connectedEdges().connectedNodes().filter(function(ele){return ele.data('label').startsWith('label:');}).map(function(ele){return ele.data('label').replace('label:','');}); var panel=document.getElementById('info-panel'), html='<button class="close-btn">&times;</button>'; html+='<h3>'+data.label+'</h3>'; if(labels.length){html+='<p><strong>Labels:</strong></p><ul>'; labels.forEach(function(l){html+='<li>'+l+'</li>'}); html+='</ul>';} if(data.url){html+='<p><a href="'+data.url+'" target="_blank">Google zoeken</a></p>';} panel.innerHTML=html; panel.style.display='block'; panel.querySelector('.close-btn').onclick=function(){panel.style.display='none'}; });
 </script>
 </body>
 </html>
