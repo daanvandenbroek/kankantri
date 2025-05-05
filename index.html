@@ -1,0 +1,351 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<meta charset="utf-8"/>
+<title>Interactive Cytoscape Network</title>
+<script src="https://unpkg.com/cytoscape/dist/cytoscape.min.js">
+  // Click to show info panel
+  cy.on('tap', 'node.item', function(evt) {
+    var node = evt.target;
+    var data = node.data();
+    // Find connected label: nodes
+    var labels = node.connectedEdges().connectedNodes().filter(function(ele) {
+      return ele.data('label').startsWith('label:');
+    }).map(function(ele) {
+      return ele.data('label').replace('label:', '');
+    });
+    var panel = document.getElementById('info-panel');
+    var html = '<button class="close-btn">&times;</button>';
+    html += '<h3>' + data.label + '</h3>';
+    if(labels.length) {
+      html += '<p><strong>Inhoudelijke labels:</strong></p><ul>';
+      labels.forEach(function(lbl){ html += '<li>' + lbl + '</li>'; });
+      html += '</ul>';
+    }
+    if(data.url) { html += '<p><a href="' + data.url + '" target="_blank">Google zoeken</a></p>'; }
+    panel.innerHTML = html;
+    panel.style.display = 'block';
+    panel.querySelector('.close-btn').onclick = function() { panel.style.display = 'none'; };
+  });
+
+</script>
+
+<style>
+  :root {
+    --primary-color: #0052cc;
+    --secondary-color: #6c757d;
+    --background-control: #f4f5f7;
+    --text-color: #333333;
+    --shadow: 0 4px 12px rgba(0,0,0,0.1);
+    --border-radius: 8px;
+    --font-base: 'Inter', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; width: 100%; font-family: var(--font-base); overflow: hidden; 
+  background-color: #e8f5e9;
+}
+  #controls {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 250px;
+      height: 100%;
+      background: #fafafa;
+      border-right: 1px solid #ddd;
+      padding: 16px;
+      box-sizing: border-box;
+      overflow-y: auto;
+      z-index: 10;
+    }
+  #controls h2 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--text-color);
+  }
+  #controls button {
+    display: block;
+    width: 100%;
+    margin: 8px 0;
+    padding: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffffff;
+    background-color: var(--primary-color);
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+  }
+  #controls button:hover {
+    background-color: #003d99;
+    transform: translateY(-1px);
+  }
+  #controls button.secondary {
+    background-color: var(--secondary-color);
+  }
+  #controls button.secondary:hover {
+    background-color: #5a6268;
+  }
+  #controls fieldset {
+    margin-top: 16px;
+    border: 1px solid #e1e4e8;
+    padding: 12px;
+    border-radius: var(--border-radius);
+  }
+  #controls legend {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text-color);
+  }
+  #controls label {
+    font-size: 14px;
+    color: var(--text-color);
+  }
+  #controls input[type="checkbox"] {
+    transform: scale(1.2);
+    margin-right: 8px;
+    cursor: pointer;
+  }
+  #cy {
+    position: absolute;
+    top: 0;
+    left: 240px;
+    right: 0;
+    bottom: 0;
+  }
+  #tooltip {
+    position: absolute;
+    z-index: 1000;
+    padding: 6px 10px;
+    background: #ffffff;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    font-size: 13px;
+    color: var(--text-color);
+    pointer-events: none;
+    display: none;
+    white-space: nowrap;
+    opacity: 0.9;
+    transition: opacity 0.2s;
+  }
+
+  #info-panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 240px;
+    height: 100vh;
+    background: #ffffff;
+    box-shadow: var(--shadow);
+    border-left: 1px solid #e1e4e8;
+    padding: 16px;
+    overflow-y: auto;
+    display: none;
+    font-size: 14px;
+    color: var(--text-color);
+  }
+  #info-panel button.close-btn {
+    background: none;
+    border: none;
+    font-size: 18px;
+    float: right;
+    cursor: pointer;
+  }
+
+</style>
+
+</head>
+<body>
+
+<div id="controls">
+  <h2>Instellingen</h2>
+  <button id="toggle_hover" data-shown="false" style="margin-bottom:8px;">Toon alle titels</button><br/>
+  <button id="toggle_all_labels" data-hidden="false" style="margin-bottom:8px;">Verberg alle inhoudelijke labels</button><br/><br/>
+  <strong>Filter inhoudelijke labels:</strong>
+  <fieldset>
+    <legend>Perspectief</legend>
+    <label><input type="checkbox" id="filter_10" data-filter-label="label:Surinaams perspectief" checked> Surinaams perspectief</label><br/>
+    <label><input type="checkbox" id="filter_18" data-filter-label="label:Nederlands perspectief" checked> Nederlands perspectief</label><br/>
+    <label><input type="checkbox" id="filter_8" data-filter-label="label:Surinaamse diaspora" checked> Surinaamse diaspora</label>
+  </fieldset>
+  <fieldset>
+    <legend>Politieke lading</legend>
+    <label><input type="checkbox" id="filter_23" data-filter-label="label:Nationalisme" checked> Nationalisme</label><br/>
+    <label><input type="checkbox" id="filter_31" data-filter-label="label:Milieuactivisme" checked> Milieuactivisme</label>
+  </fieldset>
+  <fieldset>
+    <legend>Onderwerp genoemd</legend>
+    <label><input type="checkbox" id="filter_46" data-filter-label="label:Christendom" checked> Christendom</label><br/>
+    <label><input type="checkbox" id="filter_5" data-filter-label="label:Winti" checked> Winti</label><br/>
+    <label><input type="checkbox" id="filter_36" data-filter-label="label:Slavernij" checked> Slavernij</label>
+  </fieldset>
+  <fieldset>
+    <legend>Verschijningscontext</legend>
+    <label><input type="checkbox" id="filter_39" data-filter-label="label:Postkoloniaal Nederland" checked> Postkoloniaal Nederland</label>
+  </fieldset>
+</div>
+
+
+<div id="cy"></div>
+<div id="tooltip"></div>
+<div id="info-panel"></div>
+<script>
+var cy = cytoscape({
+    container: document.getElementById('cy'),
+    elements: [{"data": {"id": 8, "label": "label:Surinaamse diaspora", "url": ""}, "classes": "label", "position": {"x": 125.30789184570312, "y": 435.8347778320313}, "style": {"background-color": "#ff743e", "width": 50.0, "height": 50.0}}, {"data": {"id": 6, "label": "Wan Apuku bari / Schreeuw der zevenstem", "url": "https://www.google.com/search?q=Wan%20Apuku%20bari%20/%20Schreeuw%20der%20zevenstem"}, "classes": "item", "position": {"x": -204.64682006835935, "y": -74.26016235351562}, "style": {"background-color": "#68ad36", "width": 50.0, "height": 50.0}}, {"data": {"id": 41, "label": "De wilde vaart : Op zoek naar de veerkracht van Suriname", "url": "https://www.google.com/search?q=De%20wilde%20vaart%20%3A%20Op%20zoek%20naar%20de%20veerkracht%20van%20Suriname"}, "classes": "item", "position": {"x": -34.07843017578125, "y": -319.3778686523437}, "style": {"background-color": "#d27cce", "width": 50.0, "height": 50.0}}, {"data": {"id": 0, "label": "Shriniv\u00e1si \u2013 El kankantrie de poes\u00eda", "url": "https://www.google.com/search?q=Shriniv%C3%A1si%20%E2%80%93%20El%20kankantrie%20de%20poes%C3%ADa"}, "classes": "item", "position": {"x": -317.96588134765625, "y": 403.8726196289063}, "style": {"background-color": "#68ad36", "width": 50.0, "height": 50.0}}, {"data": {"id": 25, "label": "Kamiel redt een super reus", "url": "https://www.google.com/search?q=Kamiel%20redt%20een%20super%20reus"}, "classes": "item", "position": {"x": 109.87662506103516, "y": -467.0322570800781}, "style": {"background-color": "#00b7da", "width": 50.0, "height": 50.0}}, {"data": {"id": 31, "label": "label:Milieuactivisme", "url": ""}, "classes": "label", "position": {"x": -229.44569396972656, "y": -469.3356323242188}, "style": {"background-color": "#00b7da", "width": 50.0, "height": 50.0}}, {"data": {"id": 44, "label": "Uit het geestenrijk van Suriname", "url": "https://www.google.com/search?q=Uit%20het%20geestenrijk%20van%20Suriname"}, "classes": "item", "position": {"x": 235.7206573486328, "y": -342.7008056640625}, "style": {"background-color": "#d27cce", "width": 50.0, "height": 50.0}}, {"data": {"id": 37, "label": "sondro syoro / zonder oevers", "url": "https://www.google.com/search?q=sondro%20syoro%20/%20zonder%20oevers"}, "classes": "item", "position": {"x": 254.93115234375, "y": 465.0426635742188}, "style": {"background-color": "#ff743e", "width": 50.0, "height": 50.0}}, {"data": {"id": 42, "label": "'Woudreuzen of kasplantjes?'", "url": "https://www.google.com/search?q=%27Woudreuzen%20of%20kasplantjes%3F%27"}, "classes": "item", "position": {"x": 392.3120422363281, "y": 125.52598571777344}, "style": {"background-color": "#ff743e", "width": 50.0, "height": 50.0}}, {"data": {"id": 23, "label": "label:Nationalisme", "url": ""}, "classes": "label", "position": {"x": -245.0432586669922, "y": 322.8766174316406}, "style": {"background-color": "#68ad36", "width": 50.0, "height": 50.0}}, {"data": {"id": 43, "label": "Kankantri. The silk cotton tree", "url": "https://www.google.com/search?q=Kankantri.%20The%20silk%20cotton%20tree"}, "classes": "item", "position": {"x": 101.8504867553711, "y": 172.14463806152344}, "style": {"background-color": "#ff743e", "width": 50.0, "height": 50.0}}, {"data": {"id": 29, "label": "De levende afgod of De geschiedenis van een kankantrieboom", "url": "https://www.google.com/search?q=De%20levende%20afgod%20of%20De%20geschiedenis%20van%20een%20kankantrieboom"}, "classes": "item", "position": {"x": 276.7772827148437, "y": -303.05548095703125}, "style": {"background-color": "#d27cce", "width": 50.0, "height": 50.0}}, {"data": {"id": 4, "label": "De smaak van Sranan Libre: roman over het bloedbad van Paramaribo op 8 december 1982", "url": "https://www.google.com/search?q=De%20smaak%20van%20Sranan%20Libre%3A%20roman%20over%20het%20bloedbad%20van%20Paramaribo%20op%208%20december%201982"}, "classes": "item", "position": {"x": -178.54859924316406, "y": 270.0768127441406}, "style": {"background-color": "#ff743e", "width": 50.0, "height": 50.0}}, {"data": {"id": 34, "label": "Boompie", "url": "https://www.google.com/search?q=Boompie"}, "classes": "item", "position": {"x": -393.4622192382813, "y": -332.0189819335937}, "style": {"background-color": "#00b7da", "width": 50.0, "height": 50.0}}, {"data": {"id": 38, "label": "Proeve over de natuurlyke geschiedenis van Guiana", "url": "https://www.google.com/search?q=Proeve%20over%20de%20natuurlyke%20geschiedenis%20van%20Guiana"}, "classes": "item", "position": {"x": 553.6361694335938, "y": -232.8425750732422}, "style": {"background-color": "#d27cce", "width": 50.0, "height": 50.0}}, {"data": {"id": 14, "label": "So Yu Ben Taigi Mi", "url": "https://www.google.com/search?q=So%20Yu%20Ben%20Taigi%20Mi"}, "classes": "item", "position": {"x": 28.21906471252441, "y": -385.4612121582031}, "style": {"background-color": "#d27cce", "width": 50.0, "height": 50.0}}, {"data": {"id": 28, "label": "Theaterkrant", "url": "https://www.google.com/search?q=Theaterkrant"}, "classes": "item", "position": {"x": -31.372730255126957, "y": 410.1761779785156}, "style": {"background-color": "#ff743e", "width": 50.0, "height": 50.0}}, {"data": {"id": 36, "label": "label:Slavernij", "url": ""}, "classes": "label", "position": {"x": -60.71191787719727, "y": 88.46968078613281}, "style": {"background-color": "#68ad36", "width": 50.0, "height": 50.0}}, {"data": {"id": 40, "label": "Powema di lutu / Het gedicht van mijn roots", "url": "https://www.google.com/search?q=Powema%20di%20lutu%20/%20Het%20gedicht%20van%20mijn%20roots"}, "classes": "item", "position": {"x": -156.6092987060547, "y": 147.42063903808594}, "style": {"background-color": "#d27cce", "width": 50.0, "height": 50.0}}, {"data": {"id": 46, "label": "label:Christendom", "url": ""}, "classes": "label", "position": {"x": 104.9765167236328, "y": -357.6490478515625}, "style": {"background-color": "#d27cce", "width": 50.0, "height": 50.0}}, {"data": {"id": 10, "label": "label:Surinaams perspectief", "url": ""}, "classes": "label", "position": {"x": -363.6433410644531, "y": -21.45902633666992}, "style": {"background-color": "#68ad36", "width": 50.0, "height": 50.0}}, {"data": {"id": 22, "label": "Reize naar Surinamen en Guiana", "url": "https://www.google.com/search?q=Reize%20naar%20Surinamen%20en%20Guiana"}, "classes": "item", "position": {"x": 163.08067321777344, "y": -110.50157928466795}, "style": {"background-color": "#d27cce", "width": 50.0, "height": 50.0}}, {"data": {"id": 12, "label": "Negende document", "url": "https://www.google.com/search?q=Negende%20document"}, "classes": "item", "position": {"x": 392.2094421386719, "y": 85.154541015625}, "style": {"background-color": "#d27cce", "width": 50.0, "height": 50.0}}, {"data": {"id": 11, "label": "No-Meri-Mi-Kondre", "url": "https://www.google.com/search?q=No-Meri-Mi-Kondre"}, "classes": "item", "position": {"x": -531.8757934570312, "y": -83.55884552001953}, "style": {"background-color": "#68ad36", "width": 50.0, "height": 50.0}}, {"data": {"id": 35, "label": "Verhandeling over den landbouw, in de colonie Suriname", "url": "https://www.google.com/search?q=Verhandeling%20over%20den%20landbouw%2C%20in%20de%20colonie%20Suriname"}, "classes": "item", "position": {"x": 211.0896148681641, "y": -286.3750915527344}, "style": {"background-color": "#d27cce", "width": 50.0, "height": 50.0}}, {"data": {"id": 24, "label": "Anansi: Surinaamse volksverhalen", "url": "https://www.google.com/search?q=Anansi%3A%20Surinaamse%20volksverhalen"}, "classes": "item", "position": {"x": -168.5925750732422, "y": -36.50989532470703}, "style": {"background-color": "#68ad36", "width": 50.0, "height": 50.0}}, {"data": {"id": 1, "label": "Winti", "url": "https://www.google.com/search?q=Winti"}, "classes": "item", "position": {"x": -62.856964111328125, "y": 217.6884307861328}, "style": {"background-color": "#68ad36", "width": 50.0, "height": 50.0}}, {"data": {"id": 18, "label": "label:Nederlands perspectief", "url": ""}, "classes": "label", "position": {"x": 388.1302490234375, "y": -175.81265258789062}, "style": {"background-color": "#d27cce", "width": 50.0, "height": 50.0}}, {"data": {"id": 13, "label": "In de kankantrie", "url": "https://www.google.com/search?q=In%20de%20kankantrie"}, "classes": "item", "position": {"x": 558.516845703125, "y": -189.09963989257807}, "style": {"background-color": "#d27cce", "width": 50.0, "height": 50.0}}, {"data": {"id": 16, "label": "Kankantri. Powema", "url": "https://www.google.com/search?q=Kankantri.%20Powema"}, "classes": "item", "position": {"x": -269.22344970703125, "y": 67.5978012084961}, "style": {"background-color": "#68ad36", "width": 50.0, "height": 50.0}}, {"data": {"id": 39, "label": "label:Postkoloniaal Nederland", "url": ""}, "classes": "label", "position": {"x": 168.05221557617188, "y": 325.2823181152344}, "style": {"background-color": "#ff743e", "width": 50.0, "height": 50.0}}, {"data": {"id": 33, "label": "Wij slaven van Suriname", "url": "https://www.google.com/search?q=Wij%20slaven%20van%20Suriname"}, "classes": "item", "position": {"x": -311.3048400878906, "y": 171.43882751464844}, "style": {"background-color": "#68ad36", "width": 50.0, "height": 50.0}}, {"data": {"id": 17, "label": "Tjubi u mat\u00fa! Red ons bos", "url": "https://www.google.com/search?q=Tjubi%20u%20mat%C3%BA%21%20Red%20ons%20bos"}, "classes": "item", "position": {"x": -272.27166748046875, "y": -300.2635192871094}, "style": {"background-color": "#00b7da", "width": 50.0, "height": 50.0}}, {"data": {"id": 45, "label": "Het weeklagen van de kankantrie", "url": "https://www.google.com/search?q=Het%20weeklagen%20van%20de%20kankantrie"}, "classes": "item", "position": {"x": -281.89178466796875, "y": -179.02789306640625}, "style": {"background-color": "#d27cce", "width": 50.0, "height": 50.0}}, {"data": {"id": 32, "label": "Boni de Musical", "url": "https://www.google.com/search?q=Boni%20de%20Musical"}, "classes": "item", "position": {"x": -3.303166627883911, "y": 360.3753356933594}, "style": {"background-color": "#68ad36", "width": 50.0, "height": 50.0}}, {"data": {"id": 7, "label": "Sranan", "url": "https://www.google.com/search?q=Sranan"}, "classes": "item", "position": {"x": -438.7406005859375, "y": 178.5806427001953}, "style": {"background-color": "#68ad36", "width": 50.0, "height": 50.0}}, {"data": {"id": 30, "label": "Jaguarman: mijn vader, zijn vader en andere Surinaamse helden", "url": "https://www.google.com/search?q=Jaguarman%3A%20mijn%20vader%2C%20zijn%20vader%20en%20andere%20Surinaamse%20helden"}, "classes": "item", "position": {"x": 158.32644653320312, "y": 68.40837860107422}, "style": {"background-color": "#ff743e", "width": 50.0, "height": 50.0}}, {"data": {"id": 19, "label": "Mi kanto", "url": "https://www.google.com/search?q=Mi%20kanto"}, "classes": "item", "position": {"x": 229.49513244628903, "y": 507.4569091796875}, "style": {"background-color": "#ff743e", "width": 50.0, "height": 50.0}}, {"data": {"id": 5, "label": "label:Winti", "url": ""}, "classes": "label", "position": {"x": 11.260622024536133, "y": -147.59677124023438}, "style": {"background-color": "#d27cce", "width": 50.0, "height": 50.0}}, {"data": {"id": 15, "label": "Beschryving van Guiana, of de Wilde Kust, in Zuid-America", "url": "https://www.google.com/search?q=Beschryving%20van%20Guiana%2C%20of%20de%20Wilde%20Kust%2C%20in%20Zuid-America"}, "classes": "item", "position": {"x": 269.477294921875, "y": -199.9901123046875}, "style": {"background-color": "#d27cce", "width": 50.0, "height": 50.0}}, {"data": {"id": 26, "label": "Speech van de minister-president van Nederland, dr Jan Peter Balkenende", "url": "https://www.google.com/search?q=Speech%20van%20de%20minister-president%20van%20Nederland%2C%20dr%20Jan%20Peter%20Balkenende"}, "classes": "item", "position": {"x": 185.4110107421875, "y": 186.62286376953125}, "style": {"background-color": "#ff743e", "width": 50.0, "height": 50.0}}, {"data": {"id": 2, "label": "Ga terug naar je eigen land", "url": "https://www.google.com/search?q=Ga%20terug%20naar%20je%20eigen%20land"}, "classes": "item", "position": {"x": 181.6820373535156, "y": 526.5286254882812}, "style": {"background-color": "#ff743e", "width": 50.0, "height": 50.0}}, {"data": {"id": 20, "label": "De kankantrie : bekroond toneelspel in drie bedrijven 3 dames, 4 heren, 1 d\u00e9cor", "url": "https://www.google.com/search?q=De%20kankantrie%20%3A%20bekroond%20toneelspel%20in%20drie%20bedrijven%203%20dames%2C%204%20heren%2C%201%20d%C3%A9cor"}, "classes": "item", "position": {"x": 531.177978515625, "y": -269.02716064453125}, "style": {"background-color": "#d27cce", "width": 50.0, "height": 50.0}}, {"data": {"id": 9, "label": "De Surinaamsche goudvelden", "url": "https://www.google.com/search?q=De%20Surinaamsche%20goudvelden"}, "classes": "item", "position": {"x": 186.8865966796875, "y": -66.64057922363281}, "style": {"background-color": "#d27cce", "width": 50.0, "height": 50.0}}, {"data": {"id": 21, "label": "De edelstenen van Oom Brink", "url": "https://www.google.com/search?q=De%20edelstenen%20van%20Oom%20Brink"}, "classes": "item", "position": {"x": -545.4425048828125, "y": -35.94718551635742}, "style": {"background-color": "#68ad36", "width": 50.0, "height": 50.0}}, {"data": {"id": 27, "label": "Ma Kankantrie. Een verhaal uit de Slaventijd", "url": "https://www.google.com/search?q=Ma%20Kankantrie.%20Een%20verhaal%20uit%20de%20Slaventijd"}, "classes": "item", "position": {"x": -124.97022247314452, "y": -162.74351501464844}, "style": {"background-color": "#68ad36", "width": 50.0, "height": 50.0}}, {"data": {"id": 3, "label": "Mama Kankantri en de geboorte van de stad Paramaribo", "url": "https://www.google.com/search?q=Mama%20Kankantri%20en%20de%20geboorte%20van%20de%20stad%20Paramaribo"}, "classes": "item", "position": {"x": -421.8481140136719, "y": 223.76426696777344}, "style": {"background-color": "#68ad36", "width": 50.0, "height": 50.0}}, {"data": {"id": 47, "label": "d\u00eel ghab\u1e5f\u00e2y k\u00e2he\u1e49se semar bhay\u00e2nak", "url": "https://www.google.com/search?q=d%C3%AEl%20ghab%E1%B9%9F%C3%A2y%20k%C3%A2he%E1%B9%89se%20semar%20bhay%C3%A2nak"}, "classes": "item", "position": {"x": -140.75523376464844, "y": -269.4732360839844}, "style": {"background-color": "#d27cce", "width": 50.0, "height": 50.0}}, {"data": {"id": "8_32", "source": 8, "target": 32}, "style": {"line-color": "#68ad36", "width": 1}}, {"data": {"id": "8_43", "source": 8, "target": 43}, "style": {"line-color": "#ff743e", "width": 1}}, {"data": {"id": "8_28", "source": 8, "target": 28}, "style": {"line-color": "#ff743e", "width": 1}}, {"data": {"id": "8_37", "source": 8, "target": 37}, "style": {"line-color": "#ff743e", "width": 1}}, {"data": {"id": "8_2", "source": 8, "target": 2}, "style": {"line-color": "#ff743e", "width": 1}}, {"data": {"id": "8_30", "source": 8, "target": 30}, "style": {"line-color": "#ff743e", "width": 1}}, {"data": {"id": "8_19", "source": 8, "target": 19}, "style": {"line-color": "#ff743e", "width": 1}}, {"data": {"id": "8_1", "source": 8, "target": 1}, "style": {"line-color": "#68ad36", "width": 1}}, {"data": {"id": "6_5", "source": 6, "target": 5}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "6_10", "source": 6, "target": 10}, "style": {"line-color": "#68ad36", "width": 1}}, {"data": {"id": "6_36", "source": 6, "target": 36}, "style": {"line-color": "#68ad36", "width": 1}}, {"data": {"id": "41_5", "source": 41, "target": 5}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "0_23", "source": 0, "target": 23}, "style": {"line-color": "#68ad36", "width": 1}}, {"data": {"id": "25_18", "source": 25, "target": 18}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "25_46", "source": 25, "target": 46}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "25_31", "source": 25, "target": 31}, "style": {"line-color": "#00b7da", "width": 1}}, {"data": {"id": "31_17", "source": 31, "target": 17}, "style": {"line-color": "#00b7da", "width": 1}}, {"data": {"id": "31_34", "source": 31, "target": 34}, "style": {"line-color": "#00b7da", "width": 1}}, {"data": {"id": "44_46", "source": 44, "target": 46}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "44_18", "source": 44, "target": 18}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "44_5", "source": 44, "target": 5}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "37_39", "source": 37, "target": 39}, "style": {"line-color": "#ff743e", "width": 1}}, {"data": {"id": "42_39", "source": 42, "target": 39}, "style": {"line-color": "#ff743e", "width": 1}}, {"data": {"id": "42_18", "source": 42, "target": 18}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "23_40", "source": 23, "target": 40}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "23_1", "source": 23, "target": 1}, "style": {"line-color": "#68ad36", "width": 1}}, {"data": {"id": "23_4", "source": 23, "target": 4}, "style": {"line-color": "#ff743e", "width": 1}}, {"data": {"id": "23_7", "source": 23, "target": 7}, "style": {"line-color": "#68ad36", "width": 1}}, {"data": {"id": "23_3", "source": 23, "target": 3}, "style": {"line-color": "#68ad36", "width": 1}}, {"data": {"id": "23_33", "source": 23, "target": 33}, "style": {"line-color": "#68ad36", "width": 1}}, {"data": {"id": "23_26", "source": 23, "target": 26}, "style": {"line-color": "#ff743e", "width": 1}}, {"data": {"id": "23_32", "source": 23, "target": 32}, "style": {"line-color": "#68ad36", "width": 1}}, {"data": {"id": "23_16", "source": 23, "target": 16}, "style": {"line-color": "#68ad36", "width": 1}}, {"data": {"id": "23_28", "source": 23, "target": 28}, "style": {"line-color": "#ff743e", "width": 1}}, {"data": {"id": "43_5", "source": 43, "target": 5}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "29_18", "source": 29, "target": 18}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "29_5", "source": 29, "target": 5}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "29_46", "source": 29, "target": 46}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "4_10", "source": 4, "target": 10}, "style": {"line-color": "#68ad36", "width": 1}}, {"data": {"id": "4_39", "source": 4, "target": 39}, "style": {"line-color": "#ff743e", "width": 1}}, {"data": {"id": "34_10", "source": 34, "target": 10}, "style": {"line-color": "#68ad36", "width": 1}}, {"data": {"id": "38_18", "source": 38, "target": 18}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "14_46", "source": 14, "target": 46}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "14_5", "source": 14, "target": 5}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "28_36", "source": 28, "target": 36}, "style": {"line-color": "#68ad36", "width": 1}}, {"data": {"id": "28_39", "source": 28, "target": 39}, "style": {"line-color": "#ff743e", "width": 1}}, {"data": {"id": "36_24", "source": 36, "target": 24}, "style": {"line-color": "#68ad36", "width": 1}}, {"data": {"id": "36_9", "source": 36, "target": 9}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "36_32", "source": 36, "target": 32}, "style": {"line-color": "#68ad36", "width": 1}}, {"data": {"id": "36_22", "source": 36, "target": 22}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "36_33", "source": 36, "target": 33}, "style": {"line-color": "#68ad36", "width": 1}}, {"data": {"id": "36_27", "source": 36, "target": 27}, "style": {"line-color": "#68ad36", "width": 1}}, {"data": {"id": "36_1", "source": 36, "target": 1}, "style": {"line-color": "#68ad36", "width": 1}}, {"data": {"id": "40_5", "source": 40, "target": 5}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "40_39", "source": 40, "target": 39}, "style": {"line-color": "#ff743e", "width": 1}}, {"data": {"id": "40_10", "source": 40, "target": 10}, "style": {"line-color": "#68ad36", "width": 1}}, {"data": {"id": "46_30", "source": 46, "target": 30}, "style": {"line-color": "#ff743e", "width": 1}}, {"data": {"id": "46_35", "source": 46, "target": 35}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "46_47", "source": 46, "target": 47}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "46_27", "source": 46, "target": 27}, "style": {"line-color": "#68ad36", "width": 1}}, {"data": {"id": "10_45", "source": 10, "target": 45}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "10_3", "source": 10, "target": 3}, "style": {"line-color": "#68ad36", "width": 1}}, {"data": {"id": "10_33", "source": 10, "target": 33}, "style": {"line-color": "#68ad36", "width": 1}}, {"data": {"id": "10_7", "source": 10, "target": 7}, "style": {"line-color": "#68ad36", "width": 1}}, {"data": {"id": "10_1", "source": 10, "target": 1}, "style": {"line-color": "#68ad36", "width": 1}}, {"data": {"id": "10_24", "source": 10, "target": 24}, "style": {"line-color": "#68ad36", "width": 1}}, {"data": {"id": "10_11", "source": 10, "target": 11}, "style": {"line-color": "#68ad36", "width": 1}}, {"data": {"id": "10_27", "source": 10, "target": 27}, "style": {"line-color": "#68ad36", "width": 1}}, {"data": {"id": "10_16", "source": 10, "target": 16}, "style": {"line-color": "#68ad36", "width": 1}}, {"data": {"id": "10_47", "source": 10, "target": 47}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "10_21", "source": 10, "target": 21}, "style": {"line-color": "#68ad36", "width": 1}}, {"data": {"id": "10_17", "source": 10, "target": 17}, "style": {"line-color": "#00b7da", "width": 1}}, {"data": {"id": "22_18", "source": 22, "target": 18}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "22_5", "source": 22, "target": 5}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "12_39", "source": 12, "target": 39}, "style": {"line-color": "#ff743e", "width": 1}}, {"data": {"id": "12_18", "source": 12, "target": 18}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "35_18", "source": 35, "target": 18}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "35_5", "source": 35, "target": 5}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "24_5", "source": 24, "target": 5}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "1_5", "source": 1, "target": 5}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "1_39", "source": 1, "target": 39}, "style": {"line-color": "#ff743e", "width": 1}}, {"data": {"id": "18_20", "source": 18, "target": 20}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "18_26", "source": 18, "target": 26}, "style": {"line-color": "#ff743e", "width": 1}}, {"data": {"id": "18_9", "source": 18, "target": 9}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "18_13", "source": 18, "target": 13}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "18_15", "source": 18, "target": 15}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "16_5", "source": 16, "target": 5}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "39_32", "source": 39, "target": 32}, "style": {"line-color": "#68ad36", "width": 1}}, {"data": {"id": "39_30", "source": 39, "target": 30}, "style": {"line-color": "#ff743e", "width": 1}}, {"data": {"id": "39_2", "source": 39, "target": 2}, "style": {"line-color": "#ff743e", "width": 1}}, {"data": {"id": "39_19", "source": 39, "target": 19}, "style": {"line-color": "#ff743e", "width": 1}}, {"data": {"id": "39_26", "source": 39, "target": 26}, "style": {"line-color": "#ff743e", "width": 1}}, {"data": {"id": "17_5", "source": 17, "target": 5}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "45_5", "source": 45, "target": 5}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "30_5", "source": 30, "target": 5}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "5_15", "source": 5, "target": 15}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "5_47", "source": 5, "target": 47}, "style": {"line-color": "#d27cce", "width": 1}}, {"data": {"id": "5_27", "source": 5, "target": 27}, "style": {"line-color": "#68ad36", "width": 1}}, {"data": {"id": "5_9", "source": 5, "target": 9}, "style": {"line-color": "#d27cce", "width": 1}}],
+    layout: { name: 'preset', fit: true },
+    style: [{"selector": "node.label", "style": {"label": "data(label)", "font-weight": "bold", "text-valign": "center", "text-halign": "center", "font-size": "12px"}}, {"selector": "node.item", "style": {"label": "", "text-opacity": 0}}, {"selector": ".faded", "style": {"opacity": 0.1}}, {"selector": ".highlight", "style": {"opacity": 1}}, {"selector": "edge", "style": {"line-color": "data(line-color)", "width": 1}}]
+});
+
+// Tooltip
+var tooltip = document.getElementById('tooltip');
+var toggleHover = false;
+cy.on('mouseover', 'node.item', function(evt) {
+    if (toggleHover) return;
+    tooltip.style.display = 'block';
+    var node = evt.target;
+    tooltip.innerHTML = node.data('label');
+    var pos = node.renderedPosition();
+    tooltip.style.left = (pos.x + 10) + 'px';
+    tooltip.style.top = (pos.y - 10) + 'px';
+});
+cy.on('mouseout', 'node.item', function(evt) {
+    tooltip.style.display = 'none';
+});
+
+// Focus highlight
+cy.on('mouseover', 'node', function(evt) {
+    var node = evt.target;
+    var connectedEdges = node.connectedEdges();
+    var connectedNodes = connectedEdges.connectedNodes().union(node);
+    cy.elements().difference(connectedEdges.union(connectedNodes)).addClass('faded');
+    connectedNodes.addClass('highlight');
+    connectedEdges.addClass('highlight');
+});
+cy.on('mouseout', 'node', function(evt) {
+    cy.elements().removeClass('faded highlight');
+});
+
+// Filter functionality
+document.getElementById('filter_8').addEventListener('change', function(evt) {
+    var node = cy.getElementById('8');
+    var edges = node.connectedEdges();
+    if (evt.target.checked) { node.show(); edges.show(); } else { node.hide(); edges.hide(); }
+});
+document.getElementById('filter_31').addEventListener('change', function(evt) {
+    var node = cy.getElementById('31');
+    var edges = node.connectedEdges();
+    if (evt.target.checked) { node.show(); edges.show(); } else { node.hide(); edges.hide(); }
+});
+document.getElementById('filter_23').addEventListener('change', function(evt) {
+    var node = cy.getElementById('23');
+    var edges = node.connectedEdges();
+    if (evt.target.checked) { node.show(); edges.show(); } else { node.hide(); edges.hide(); }
+});
+document.getElementById('filter_36').addEventListener('change', function(evt) {
+    var node = cy.getElementById('36');
+    var edges = node.connectedEdges();
+    if (evt.target.checked) { node.show(); edges.show(); } else { node.hide(); edges.hide(); }
+});
+document.getElementById('filter_46').addEventListener('change', function(evt) {
+    var node = cy.getElementById('46');
+    var edges = node.connectedEdges();
+    if (evt.target.checked) { node.show(); edges.show(); } else { node.hide(); edges.hide(); }
+});
+document.getElementById('filter_10').addEventListener('change', function(evt) {
+    var node = cy.getElementById('10');
+    var edges = node.connectedEdges();
+    if (evt.target.checked) { node.show(); edges.show(); } else { node.hide(); edges.hide(); }
+});
+document.getElementById('filter_18').addEventListener('change', function(evt) {
+    var node = cy.getElementById('18');
+    var edges = node.connectedEdges();
+    if (evt.target.checked) { node.show(); edges.show(); } else { node.hide(); edges.hide(); }
+});
+document.getElementById('filter_39').addEventListener('change', function(evt) {
+    var node = cy.getElementById('39');
+    var edges = node.connectedEdges();
+    if (evt.target.checked) { node.show(); edges.show(); } else { node.hide(); edges.hide(); }
+});
+document.getElementById('filter_5').addEventListener('change', function(evt) {
+    var node = cy.getElementById('5');
+    var edges = node.connectedEdges();
+    if (evt.target.checked) { node.show(); edges.show(); } else { node.hide(); edges.hide(); }
+});
+
+
+// Toggle all label nodes
+
+// Toggle show/hide all label nodes
+document.getElementById('toggle_all_labels').addEventListener('click', function() {
+    var btn = this;
+    var hidden = btn.getAttribute('data-hidden') === 'true';
+    var checkboxes = document.querySelectorAll('#controls input[type="checkbox"]');
+    checkboxes.forEach(function(cb) {
+        var nodeId = cb.id.replace('filter_', '');
+        var node = cy.getElementById(nodeId);
+        var edges = node.connectedEdges();
+        if (hidden) {
+            cb.checked = true;
+            node.show();
+            edges.show();
+        } else {
+            cb.checked = false;
+            node.hide();
+            edges.hide();
+        }
+    });
+    btn.setAttribute('data-hidden', (!hidden).toString());
+    btn.textContent = hidden ? 'Verberg alle inhoudelijke labels' : 'Maak alle inhoudelijke labels zichtbaar';
+});
+
+
+// Toggle hover labels
+
+// Toggle hover labels
+document.getElementById('toggle_hover').addEventListener('click', function() {
+    toggleHover = !toggleHover;
+    var btn = this;
+    if (toggleHover) {
+        cy.nodes('.item').forEach(function(n) { n.style('label', n.data('label')); n.style('text-opacity',1); });
+        tooltip.style.display = 'none';
+        btn.textContent = 'Verberg alle titels';
+    } else {
+        cy.nodes('.item').forEach(function(n) { n.style('label',''); n.style('text-opacity',0); });
+        btn.textContent = 'Toon alle titels';
+    }
+});
+
+
+// Click to search
+
+  // Click to show info panel
+  cy.on('tap', 'node.item', function(evt) {
+    var node = evt.target;
+    var data = node.data();
+    // Find connected label: nodes
+    var labels = node.connectedEdges().connectedNodes().filter(function(ele) {
+      return ele.data('label').startsWith('label:');
+    }).map(function(ele) {
+      return ele.data('label').replace('label:', '');
+    });
+    var panel = document.getElementById('info-panel');
+    var html = '<button class="close-btn">&times;</button>';
+    html += '<h3>' + data.label + '</h3>';
+    if(labels.length) {
+      html += '<p><strong>Inhoudelijke labels:</strong></p><ul>';
+      labels.forEach(function(lbl){ html += '<li>' + lbl + '</li>'; });
+      html += '</ul>';
+    }
+    if(data.url) { html += '<p><a href="' + data.url + '" target="_blank">Google zoeken</a></p>'; }
+    panel.innerHTML = html;
+    panel.style.display = 'block';
+    panel.querySelector('.close-btn').onclick = function() { panel.style.display = 'none'; };
+  });
+
+</script>
+</body>
+</html>
